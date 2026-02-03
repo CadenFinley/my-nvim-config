@@ -13,7 +13,7 @@ end
 map({ "n", "i" }, "<C-s>", "<Cmd>w<CR>", { desc = "Save file" })
 map("n", "<C-q>", "<Cmd>q<CR>", { desc = "Quit window" })
 map("n", "<leader>l", "<Cmd>Lazy<CR>", { desc = "Open Lazy" })
-map("n", "<leader>e", "<Cmd>Ex<CR>", { desc = "File explorer" })
+map("n", "<leader>e", "<Cmd>NvimTreeToggle<CR>", { desc = "Toggle file explorer" })
 
 map("n", "<leader>f", telescope_pick("find_files"), { desc = "Find files" })
 map("n", "<leader>g", telescope_pick("live_grep"), { desc = "Search project" })

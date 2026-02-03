@@ -28,6 +28,49 @@ require("lazy").setup({
   spec = {
     theme.plugin,
     {
+      "nvim-tree/nvim-tree.lua",
+      dependencies = { "nvim-tree/nvim-web-devicons" },
+      cmd = {
+        "NvimTreeToggle",
+        "NvimTreeFocus",
+        "NvimTreeFindFile",
+        "NvimTreeFindFileToggle",
+      },
+      init = function()
+        vim.g.loaded_netrw = 1
+        vim.g.loaded_netrwPlugin = 1
+      end,
+      opts = {
+        hijack_netrw = true,
+        sync_root_with_cwd = true,
+        respect_buf_cwd = true,
+        update_focused_file = {
+          enable = true,
+          update_root = true,
+        },
+        view = {
+          width = 32,
+          side = "left",
+        },
+        renderer = {
+          highlight_git = true,
+          root_folder_label = false,
+        },
+        filters = {
+          dotfiles = false,
+        },
+        actions = {
+          open_file = {
+            quit_on_open = false,
+            resize_window = true,
+          },
+        },
+      },
+      config = function(_, opts)
+        require("nvim-tree").setup(opts)
+      end,
+    },
+    {
       "nvim-telescope/telescope.nvim",
       dependencies = { "nvim-lua/plenary.nvim" },
       lazy = false,
