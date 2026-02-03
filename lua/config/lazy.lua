@@ -123,6 +123,25 @@ require("lazy").setup({
       },
     },
     {
+      "lewis6991/gitsigns.nvim",
+      opts = {
+        signs = {
+          add = { text = "▎" },
+          change = { text = "▎" },
+          delete = { text = "▁" },
+          topdelete = { text = "▔" },
+          changedelete = { text = "▎" },
+        },
+        signcolumn = true,
+        numhl = false,
+        linehl = false,
+        word_diff = false,
+        watch_gitdir = { follow_files = true },
+        attach_to_untracked = true,
+        current_line_blame = false,
+      },
+    },
+    {
       "nvim-treesitter/nvim-treesitter",
       build = ":TSUpdate",
       opts = {
@@ -137,17 +156,13 @@ require("lazy").setup({
       "nvim-treesitter/nvim-treesitter-context",
       dependencies = { "nvim-treesitter/nvim-treesitter" },
       opts = {
-        max_lines = 3,
-        trim_scope = "outer",
-        mode = "cursor",
-        multiline_threshold = 1,
-        zindex = 30,
+        enable = false,
       },
       config = function(_, opts)
         local context = require("treesitter-context")
         context.setup(opts)
 
-        vim.keymap.set("n", "[c", context.go_to_context, { desc = "Go to context" })
+        vim.keymap.set("n", "<leader>cc", context.go_to_context, { desc = "Go to context" })
       end,
     },
     {

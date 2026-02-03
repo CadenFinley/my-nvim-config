@@ -53,7 +53,7 @@ local severity_prefix = {
 vim.diagnostic.config({
   severity_sort = true,
   underline = true,
-  signs = true,
+  signs = false,
   virtual_text = {
     spacing = 4,
     source = "if_many",
