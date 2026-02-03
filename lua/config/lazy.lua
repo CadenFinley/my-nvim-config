@@ -199,6 +199,19 @@ require("lazy").setup({
       },
     },
     {
+      "numToStr/Comment.nvim",
+      event = "VeryLazy",
+      config = function()
+        local comment = require("Comment")
+        comment.setup()
+
+        local api = require("Comment.api")
+        vim.keymap.set("n", "<C-c>", api.toggle.linewise.current, {
+          desc = "Toggle comment",
+        })
+      end,
+    },
+    {
       "nvim-treesitter/nvim-treesitter",
       build = ":TSUpdate",
       opts = {
