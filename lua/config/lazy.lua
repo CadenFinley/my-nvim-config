@@ -22,18 +22,11 @@ local function telescope_builtin(name)
   end
 end
 
+local theme = require("themes")
+
 require("lazy").setup({
   spec = {
-    {
-      "ellisonleao/gruvbox.nvim",
-      priority = 1000,
-      config = function()
-        require("gruvbox").setup({
-          contrast = "soft",
-        })
-        vim.cmd.colorscheme("gruvbox")
-      end,
-    },
+    theme.plugin,
     {
       "nvim-telescope/telescope.nvim",
       dependencies = { "nvim-lua/plenary.nvim" },
@@ -79,12 +72,33 @@ require("lazy").setup({
         })
 
         local function status_progress()
-          return lsp_progress.progress({ max_size = 80 })
+          local progress = lsp_progress.progress({ max_size = 80 })
+          if progress and progress ~= "" and progress ~= "LSP" then
+            return progress
+          end
+
+          local clients = vim.lsp.get_clients({ bufnr = vim.api.nvim_get_current_buf() })
+          if not clients or next(clients) == nil then
+            return ""
+          end
+
+          local names = {}
+          for _, client in ipairs(clients) do
+            if client.name and client.name ~= "" then
+              table.insert(names, client.name)
+            end
+          end
+
+          if #names == 0 then
+            return ""
+          end
+
+          return table.concat(names, ", ")
         end
 
         require("lualine").setup({
           options = {
-            theme = "gruvbox",
+            theme = theme.lualine_theme or "auto",
             globalstatus = true,
             component_separators = { left = "│", right = "│" },
             section_separators = { left = "", right = "" },
@@ -313,7 +327,7 @@ require("lazy").setup({
     },
   },
   defaults = { lazy = false },
-  install = { colorscheme = { "gruvbox" } },
+  install = { colorscheme = { theme.colorscheme or "default" } },
   checker = { enabled = false },
 })
 
