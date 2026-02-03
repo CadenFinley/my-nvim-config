@@ -1,0 +1,15 @@
+# Neovim cache and lockfiles
+lazy-lock.json
+lazy-lock.*.json
+
+# Editor swap/backup artefacts
+*.swp
+*.swo
+*.un~
+Session.vim
+tags
+
+# OS-specific cruft
+.DS_Store
+.AppleDouble
+.LSOverride
