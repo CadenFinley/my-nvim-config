@@ -1,0 +1,305 @@
+local lazypath = vim.fn.stdpath("data") .. "/lazy/lazy.nvim"
+if not vim.loop.fs_stat(lazypath) then
+  vim.fn.system({
+    "git",
+    "clone",
+    "--filter=blob:none",
+    "https://github.com/folke/lazy.nvim.git",
+    "--branch=stable",
+    lazypath,
+  })
+end
+vim.opt.rtp:prepend(lazypath)
+
+local function telescope_builtin(name)
+  return function()
+    local ok, builtin = pcall(require, "telescope.builtin")
+    if ok then
+      builtin[name]()
+    else
+      vim.notify("Telescope is not available", vim.log.levels.WARN)
+    end
+  end
+end
+
+require("lazy").setup({
+  spec = {
+    {
+      "ellisonleao/gruvbox.nvim",
+      priority = 1000,
+      config = function()
+        require("gruvbox").setup({
+          contrast = "soft",
+        })
+        vim.cmd.colorscheme("gruvbox")
+      end,
+    },
+    {
+      "nvim-telescope/telescope.nvim",
+      dependencies = { "nvim-lua/plenary.nvim" },
+      lazy = false,
+      priority = 1100,
+      config = function()
+        local telescope = require("telescope")
+        telescope.setup({
+          defaults = {
+            prompt_prefix = "❯ ",
+            selection_caret = "▶ ",
+            sorting_strategy = "ascending",
+            layout_config = { prompt_position = "top" },
+          },
+          pickers = {
+            find_files = { hidden = false },
+          },
+        })
+      end,
+    },
+    {
+      "nvim-telescope/telescope-fzf-native.nvim",
+      build = "make",
+      cond = function()
+        return vim.fn.executable("make") == 1
+      end,
+      lazy = false,
+      priority = 1090,
+      config = function()
+        pcall(require("telescope").load_extension, "fzf")
+      end,
+    },
+    {
+      "nvim-lualine/lualine.nvim",
+      dependencies = {
+        "nvim-tree/nvim-web-devicons",
+        "linrongbin16/lsp-progress.nvim",
+      },
+      config = function()
+        local lsp_progress = require("lsp-progress")
+        lsp_progress.setup({
+          spinner = { "⠋", "⠙", "⠚", "⠞", "⠖", "⠦", "⠴", "⠲", "⠳", "⠓" },
+        })
+
+        local function status_progress()
+          return lsp_progress.progress({ max_size = 80 })
+        end
+
+        require("lualine").setup({
+          options = {
+            theme = "gruvbox",
+            globalstatus = true,
+            component_separators = { left = "│", right = "│" },
+            section_separators = { left = "", right = "" },
+          },
+          sections = {
+            lualine_a = {
+              { "mode", fmt = function(str) return str:upper() end },
+            },
+            lualine_b = {
+              status_progress,
+              { "filename", file_status = true, path = 1 },
+            },
+            lualine_c = {},
+            lualine_x = {
+              { "diagnostics", sources = { "nvim_diagnostic" } },
+              "selectioncount",
+              "fileencoding",
+            },
+            lualine_y = { "progress" },
+            lualine_z = { "location" },
+          },
+        })
+
+        vim.api.nvim_create_autocmd("User", {
+          pattern = "LspProgressStatusUpdated",
+          callback = require("lualine").refresh,
+        })
+      end,
+    },
+    {
+      "lukas-reineke/indent-blankline.nvim",
+      main = "ibl",
+      opts = {
+        indent = { char = "┊" },
+        scope = { enabled = false },
+      },
+    },
+    {
+      "nvim-treesitter/nvim-treesitter",
+      build = ":TSUpdate",
+      opts = {
+        highlight = { enable = true },
+        indent = { enable = true },
+      },
+      config = function(_, opts)
+        require("nvim-treesitter.configs").setup(opts)
+      end,
+    },
+    {
+      "nvim-treesitter/nvim-treesitter-context",
+      dependencies = { "nvim-treesitter/nvim-treesitter" },
+      opts = {
+        max_lines = 3,
+        trim_scope = "outer",
+        mode = "cursor",
+        multiline_threshold = 1,
+        zindex = 30,
+      },
+      config = function(_, opts)
+        local context = require("treesitter-context")
+        context.setup(opts)
+
+        vim.keymap.set("n", "[c", context.go_to_context, { desc = "Go to context" })
+      end,
+    },
+    {
+      "williamboman/mason.nvim",
+      build = ":MasonUpdate",
+      opts = {},
+    },
+    {
+      "neovim/nvim-lspconfig",
+      dependencies = {
+        "williamboman/mason.nvim",
+        "williamboman/mason-lspconfig.nvim",
+        "hrsh7th/cmp-nvim-lsp",
+      },
+      config = function()
+        local servers = { "lua_ls", "pyright", "ts_ls", "clangd", "rust_analyzer" }
+        local cmp_cap = require("cmp_nvim_lsp").default_capabilities()
+        local format_group = vim.api.nvim_create_augroup("HelixFormat", { clear = true })
+
+        local function enable_inlay_hints(bufnr)
+          if vim.lsp.inlay_hint and vim.lsp.inlay_hint.enable then
+            local ok = pcall(vim.lsp.inlay_hint.enable, true, { bufnr = bufnr })
+            if not ok and vim.lsp.inlay_hint then
+              pcall(vim.lsp.inlay_hint, bufnr, true)
+            end
+          elseif vim.lsp.buf and vim.lsp.buf.inlay_hint then
+            pcall(vim.lsp.buf.inlay_hint, bufnr, true)
+          end
+        end
+
+        local function on_attach(client, bufnr)
+          if client.server_capabilities.inlayHintProvider then
+            enable_inlay_hints(bufnr)
+          end
+
+          vim.api.nvim_clear_autocmds({ group = format_group, buffer = bufnr })
+          vim.api.nvim_create_autocmd("BufWritePre", {
+            group = format_group,
+            buffer = bufnr,
+            callback = function()
+              vim.lsp.buf.format({ async = false })
+            end,
+          })
+        end
+
+        local mason_lspconfig = require("mason-lspconfig")
+
+        mason_lspconfig.setup({
+          ensure_installed = servers,
+          automatic_enable = false,
+        })
+
+        local function configure(server, extra)
+          local config = vim.tbl_deep_extend("force", {
+            capabilities = cmp_cap,
+            on_attach = on_attach,
+          }, extra or {})
+
+          vim.lsp.config(server, config)
+          vim.lsp.enable(server)
+        end
+
+        configure("lua_ls", {
+          settings = {
+            Lua = {
+              diagnostics = { globals = { "vim" } },
+              workspace = { checkThirdParty = false },
+            },
+          },
+        })
+
+        configure("pyright")
+        configure("ts_ls")
+        configure("clangd")
+        configure("rust_analyzer")
+      end,
+    },
+    {
+      "hrsh7th/nvim-cmp",
+      dependencies = {
+        "hrsh7th/cmp-nvim-lsp",
+        "hrsh7th/cmp-buffer",
+        "hrsh7th/cmp-path",
+        "saadparwaiz1/cmp_luasnip",
+        "L3MON4D3/LuaSnip",
+        "rafamadriz/friendly-snippets",
+      },
+      config = function()
+        local cmp = require("cmp")
+        local luasnip = require("luasnip")
+        require("luasnip.loaders.from_vscode").lazy_load()
+
+        cmp.setup({
+          completion = { keyword_length = 2 },
+          snippet = {
+            expand = function(args)
+              luasnip.lsp_expand(args.body)
+            end,
+          },
+          mapping = cmp.mapping.preset.insert({
+            ["<C-Space>"] = cmp.mapping.complete(),
+            ["<CR>"] = cmp.mapping.confirm({ select = true }),
+            ["<Tab>"] = cmp.mapping(function(fallback)
+              if cmp.visible() then
+                cmp.select_next_item()
+              elseif luasnip.expand_or_jumpable() then
+                luasnip.expand_or_jump()
+              else
+                fallback()
+              end
+            end, { "i", "s" }),
+            ["<S-Tab>"] = cmp.mapping(function(fallback)
+              if cmp.visible() then
+                cmp.select_prev_item()
+              elseif luasnip.jumpable(-1) then
+                luasnip.jump(-1)
+              else
+                fallback()
+              end
+            end, { "i", "s" }),
+          }),
+          sources = cmp.config.sources({
+            { name = "nvim_lsp" },
+            { name = "path" },
+          }, {
+            { name = "buffer" },
+          }),
+        })
+      end,
+    },
+    {
+      "github/copilot.vim",
+      lazy = false,
+      init = function()
+        vim.g.copilot_no_tab_map = true
+        vim.g.copilot_assume_mapped = true
+      end,
+      config = function()
+        local opts = { expr = true, replace_keycodes = false, script = true, silent = true }
+        vim.keymap.set("i", "<C-l>", function()
+          return vim.fn["copilot#Accept"]("\\<CR>")
+        end, vim.tbl_extend("force", opts, { desc = "Copilot accept" }))
+
+        vim.keymap.set("i", "<M-]>", "<Plug>(copilot-next)", { desc = "Copilot next suggestion" })
+        vim.keymap.set("i", "<M-[>", "<Plug>(copilot-previous)", { desc = "Copilot previous suggestion" })
+        vim.keymap.set("i", "<C-\\>", "<Plug>(copilot-dismiss)", { desc = "Copilot dismiss" })
+      end,
+    },
+  },
+  defaults = { lazy = false },
+  install = { colorscheme = { "gruvbox" } },
+  checker = { enabled = false },
+})
+
+vim.keymap.set("n", "<leader>p", telescope_builtin("find_files"), { desc = "Telescope files" })
