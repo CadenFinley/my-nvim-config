@@ -85,7 +85,7 @@ require("lazy").setup({
             layout_config = { prompt_position = "top" },
           },
           pickers = {
-            find_files = { hidden = false },
+            find_files = { hidden = true },
           },
         })
       end,
@@ -360,6 +360,55 @@ require("lazy").setup({
           }, {
             { name = "buffer" },
           }),
+        })
+      end,
+    },
+    {
+      "windwp/nvim-autopairs",
+      event = "InsertEnter",
+      config = function()
+        local autopairs = require("nvim-autopairs")
+        autopairs.setup({
+          check_ts = true,
+          fast_wrap = {},
+        })
+
+        local ok, cmp = pcall(require, "cmp")
+        if ok then
+          local cmp_autopairs = require("nvim-autopairs.completion.cmp")
+          cmp.event:on("confirm_done", cmp_autopairs.on_confirm_done())
+        end
+      end,
+    },
+    {
+      "folke/which-key.nvim",
+      event = "VeryLazy",
+      config = function()
+        local wk = require("which-key")
+        wk.setup({
+          notify = false,
+          delay = 200,
+          plugins = {
+            spelling = { enabled = false },
+            presets = {
+              operators = true,
+              motions = true,
+              text_objects = true,
+              windows = true,
+              nav = true,
+              z = true,
+              g = true,
+            },
+          },
+          triggers = {
+            { "<leader>", mode = { "n", "v" } },
+            { "g", mode = { "n", "v" } },
+          },
+        })
+
+        wk.add({
+          { "<leader>", group = "Leader", mode = { "n", "v" } },
+          { "g", group = "goto / g", mode = { "n", "v" } },
         })
       end,
     },
