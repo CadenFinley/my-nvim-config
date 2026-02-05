@@ -158,8 +158,8 @@ local function apply_intro(buf)
 	vim.bo[buf].swapfile = false
 	vim.bo[buf].filetype = "nvim-intro"
 
-	vim.wo.number = false
-	vim.wo.relativenumber = false
+	vim.wo.number = vim.o.number
+	vim.wo.relativenumber = vim.o.relativenumber
 	vim.wo.cursorline = false
 	vim.wo.list = false
 	vim.wo.signcolumn = "no"
