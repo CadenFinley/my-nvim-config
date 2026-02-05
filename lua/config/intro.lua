@@ -36,6 +36,7 @@ local function build_intro_lines()
 
 	local center_text = {
 		[1] = true,
+		[3] = true,
 		[4] = true,
 		[13] = true,
 	}
