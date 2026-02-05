@@ -88,7 +88,7 @@ local function build_intro_lines()
 		end
 	end
 
-	return combined
+	return combined, width, #art
 end
 
 local function should_show_intro(buf)
@@ -144,15 +144,19 @@ local function center_lines(lines)
 		for _, line in ipairs(centered) do
 			padded[#padded + 1] = line
 		end
-		return padded
+		return padded, left_pad, top_pad
 	end
 
-	return centered
+	return centered, left_pad, 0
 end
+
+local logo_ns = vim.api.nvim_create_namespace("NvimIntroLogo")
 
 local function apply_intro(buf)
 	vim.bo[buf].modifiable = true
-	vim.api.nvim_buf_set_lines(buf, 0, -1, false, center_lines(build_intro_lines()))
+	local lines, art_width, art_height = build_intro_lines()
+	local centered, left_pad, top_pad = center_lines(lines)
+	vim.api.nvim_buf_set_lines(buf, 0, -1, false, centered)
 	vim.bo[buf].modifiable = false
 	vim.bo[buf].readonly = true
 	vim.bo[buf].buftype = "nofile"
@@ -166,6 +170,11 @@ local function apply_intro(buf)
 	vim.wo.cursorline = false
 	vim.wo.list = false
 	vim.wo.signcolumn = "no"
+
+	vim.api.nvim_buf_clear_namespace(buf, logo_ns, 0, -1)
+	for i = 0, art_height - 1 do
+		vim.api.nvim_buf_add_highlight(buf, logo_ns, "NvimIntroLogo", top_pad + i, left_pad, left_pad + art_width)
+	end
 end
 
 local group = vim.api.nvim_create_augroup("NvimIntro", { clear = true })
@@ -196,5 +205,6 @@ vim.api.nvim_create_autocmd("FileType", {
 	callback = function()
 		vim.cmd("syntax match NvimIntroEnter /<Enter>/")
 		vim.cmd("highlight default link NvimIntroEnter Comment")
+		vim.cmd("highlight default link NvimIntroLogo NvimIntroEnter")
 	end,
 })
