@@ -34,15 +34,8 @@ local function build_intro_lines()
 		end
 	end
 
-	local center_text = {
-		[1] = true,
-		[3] = true,
-		[4] = true,
-		[13] = true,
-	}
-
 	for i, line in ipairs(text) do
-		if center_text[i] then
+		if line ~= "" then
 			local width = vim.fn.strdisplaywidth(line)
 			local pad = 0
 			if text_width > width then
