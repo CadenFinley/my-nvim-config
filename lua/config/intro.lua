@@ -20,7 +20,7 @@ local function build_intro_lines()
 		"type  :q<Enter>               to exit         ",
 		"type  :help<Enter>            for help        ",
 		"",
-		("type  :help news<Enter> to see changes in v%d.%d"):format(v.major, v.minor),
+		("type  :help news<Enter> to see changes in v%d.%d  "):format(v.major, v.minor),
 		"",
 		"Help poor children in Uganda!",
 		"type  :help Kuwasha<Enter>    for information ",
