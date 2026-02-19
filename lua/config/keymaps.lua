@@ -39,3 +39,6 @@ map("n", "<leader>f", telescope_pick("find_files"), { desc = "Find files" })
 map("n", "<leader>g", telescope_pick("live_grep"), { desc = "Search project" })
 map("n", "<leader>b", telescope_pick("buffers"), { desc = "List buffers" })
 map("n", "<leader>hf", telescope_pick("help_tags"), { desc = "Search help" })
+
+map("n", "m", "10j", { desc = "Scroll down 10 lines" })
+map("n", ",", "10k", { desc = "Scroll up 10 lines" })
