@@ -268,6 +268,12 @@ require("lazy").setup({
             enable_inlay_hints(bufnr)
           end
 
+          local function lsp_map(lhs, rhs, desc)
+            vim.keymap.set("n", lhs, rhs, { buffer = bufnr, desc = desc })
+          end
+
+          lsp_map("gd", vim.lsp.buf.definition, "Go to definition")
+
           vim.api.nvim_clear_autocmds({ group = format_group, buffer = bufnr })
           vim.api.nvim_create_autocmd("BufWritePre", {
             group = format_group,
