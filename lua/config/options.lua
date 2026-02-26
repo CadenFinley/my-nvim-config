@@ -10,6 +10,7 @@ opt.scrolloff = 5
 opt.signcolumn = "yes"
 opt.termguicolors = true
 opt.updatetime = 400
+opt.fillchars:append({ eob = "~" })
 
 opt.wrap = true
 opt.linebreak = true
@@ -66,6 +67,17 @@ vim.diagnostic.config({
     source = "always",
   },
 })
+
+local eob_group = vim.api.nvim_create_augroup("VisibleEndOfBuffer", { clear = true })
+
+vim.api.nvim_create_autocmd("ColorScheme", {
+  group = eob_group,
+  callback = function()
+    vim.api.nvim_set_hl(0, "EndOfBuffer", { link = "NonText" })
+  end,
+})
+
+vim.api.nvim_set_hl(0, "EndOfBuffer", { link = "NonText" })
 
 vim.cmd("syntax enable")
 vim.cmd("filetype plugin indent on")
