@@ -1,9 +1,34 @@
 local map = vim.keymap.set
+
+local function safe_cwd()
+  local cwd = vim.uv.cwd()
+  if type(cwd) == "string" and cwd ~= "" and vim.fn.isdirectory(cwd) == 1 then
+    return cwd
+  end
+
+  local home = vim.uv.os_homedir()
+  if type(home) == "string" and home ~= "" and vim.fn.isdirectory(home) == 1 then
+    return home
+  end
+
+  return vim.fn.stdpath("config")
+end
+
+local cwd_based_pickers = {
+  find_files = true,
+  live_grep = true,
+  git_files = true,
+}
+
 local function telescope_pick(name)
   return function()
     local ok, builtin = pcall(require, "telescope.builtin")
     if ok then
-      builtin[name]()
+      if cwd_based_pickers[name] then
+        builtin[name]({ cwd = safe_cwd() })
+      else
+        builtin[name]()
+      end
     else
       vim.notify("Telescope is not available", vim.log.levels.WARN)
     end

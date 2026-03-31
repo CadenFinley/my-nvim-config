@@ -15,7 +15,17 @@ local function telescope_builtin(name)
   return function()
     local ok, builtin = pcall(require, "telescope.builtin")
     if ok then
-      builtin[name]()
+      local cwd = vim.uv.cwd()
+      if type(cwd) ~= "string" or cwd == "" or vim.fn.isdirectory(cwd) ~= 1 then
+        local home = vim.uv.os_homedir()
+        if type(home) == "string" and home ~= "" and vim.fn.isdirectory(home) == 1 then
+          cwd = home
+        else
+          cwd = vim.fn.stdpath("config")
+        end
+      end
+
+      builtin[name]({ cwd = cwd })
     else
       vim.notify("Telescope is not available", vim.log.levels.WARN)
     end
