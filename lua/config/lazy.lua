@@ -34,6 +34,45 @@ end
 
 local theme = require("themes")
 
+local function patch_treesitter_query_all_option()
+  local ok, query = pcall(require, "vim.treesitter.query")
+  if not ok or query._compat_add_predicate_all_false then
+    return
+  end
+
+  local function wrap_if_all_false(handler, opts)
+    if type(opts) ~= "table" or opts.all ~= false then
+      return handler
+    end
+
+    return function(match, pattern, source, predicate, metadata)
+      local compat_match = {}
+      for capture_id, captures in pairs(match) do
+        if type(captures) == "table" then
+          compat_match[capture_id] = captures[#captures] or captures[1]
+        else
+          compat_match[capture_id] = captures
+        end
+      end
+      return handler(compat_match, pattern, source, predicate, metadata)
+    end
+  end
+
+  local add_directive = query.add_directive
+  query.add_directive = function(name, handler, opts)
+    return add_directive(name, wrap_if_all_false(handler, opts), opts)
+  end
+
+  local add_predicate = query.add_predicate
+  query.add_predicate = function(name, handler, opts)
+    return add_predicate(name, wrap_if_all_false(handler, opts), opts)
+  end
+
+  query._compat_add_predicate_all_false = true
+end
+
+patch_treesitter_query_all_option()
+
 require("lazy").setup({
   spec = {
     theme.plugin,
