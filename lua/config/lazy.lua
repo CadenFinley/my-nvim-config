@@ -467,24 +467,6 @@ require("lazy").setup({
         })
       end,
     },
-    {
-      "github/copilot.vim",
-      lazy = false,
-      init = function()
-        vim.g.copilot_no_tab_map = true
-        vim.g.copilot_assume_mapped = true
-      end,
-      config = function()
-        local opts = { expr = true, replace_keycodes = false, script = true, silent = true }
-        vim.keymap.set("i", "<C-l>", function()
-          return vim.fn["copilot#Accept"]("\\<CR>")
-        end, vim.tbl_extend("force", opts, { desc = "Copilot accept" }))
-
-        vim.keymap.set("i", "<M-]>", "<Plug>(copilot-next)", { desc = "Copilot next suggestion" })
-        vim.keymap.set("i", "<M-[>", "<Plug>(copilot-previous)", { desc = "Copilot previous suggestion" })
-        vim.keymap.set("i", "<C-\\>", "<Plug>(copilot-dismiss)", { desc = "Copilot dismiss" })
-      end,
-    },
   },
   defaults = { lazy = false },
   install = { colorscheme = { theme.colorscheme or "default" } },
