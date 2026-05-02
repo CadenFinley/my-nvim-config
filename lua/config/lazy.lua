@@ -374,11 +374,51 @@ require("lazy").setup({
         "saadparwaiz1/cmp_luasnip",
         "L3MON4D3/LuaSnip",
         "rafamadriz/friendly-snippets",
+        {
+          "zbirenbaum/copilot.lua",
+          cmd = "Copilot",
+          config = function()
+            require("copilot").setup({
+              suggestion = {
+                enabled = true,
+                auto_trigger = true,
+                hide_during_completion = true,
+                keymap = {
+                  accept = false,
+                  accept_word = false,
+                  accept_line = false,
+                  next = "<M-]>",
+                  prev = "<M-[>",
+                  dismiss = "<C-]>",
+                  toggle_auto_trigger = false,
+                },
+              },
+              panel = { enabled = false },
+            })
+
+            vim.defer_fn(function()
+              local ok, auth = pcall(require, "copilot.auth")
+              if ok then
+                auth.is_authenticated()
+              end
+            end, 1000)
+          end,
+        },
       },
       config = function()
         local cmp = require("cmp")
         local luasnip = require("luasnip")
+        local has_copilot_suggestion, copilot_suggestion = pcall(require, "copilot.suggestion")
+
         require("luasnip.loaders.from_vscode").lazy_load()
+
+        cmp.event:on("menu_opened", function()
+          vim.b.copilot_suggestion_hidden = true
+        end)
+
+        cmp.event:on("menu_closed", function()
+          vim.b.copilot_suggestion_hidden = false
+        end)
 
         cmp.setup({
           completion = { keyword_length = 2 },
@@ -391,7 +431,9 @@ require("lazy").setup({
             ["<C-Space>"] = cmp.mapping.complete(),
             ["<CR>"] = cmp.mapping.confirm({ select = true }),
             ["<Tab>"] = cmp.mapping(function(fallback)
-              if cmp.visible() then
+              if has_copilot_suggestion and copilot_suggestion.is_visible() then
+                copilot_suggestion.accept()
+              elseif cmp.visible() then
                 cmp.select_next_item()
               elseif luasnip.expand_or_jumpable() then
                 luasnip.expand_or_jump()
@@ -469,6 +511,7 @@ require("lazy").setup({
     },
   },
   defaults = { lazy = false },
+  rocks = { enabled = false },
   install = { colorscheme = { theme.colorscheme or "default" } },
   checker = { enabled = false },
 })
