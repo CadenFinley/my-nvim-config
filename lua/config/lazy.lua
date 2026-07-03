@@ -188,6 +188,18 @@ require("lazy").setup({
           return table.concat(names, ", ")
         end
 
+        local function jump_diagnostic(count)
+          local severity = { min = vim.diagnostic.severity.WARN }
+
+          if vim.diagnostic.jump then
+            vim.diagnostic.jump({ count = count, severity = severity })
+            return
+          end
+
+          local jump = count > 0 and vim.diagnostic.goto_next or vim.diagnostic.goto_prev
+          jump({ severity = severity })
+        end
+
         require("lualine").setup({
           options = {
             theme = theme.lualine_theme or "auto",
@@ -205,7 +217,18 @@ require("lazy").setup({
             },
             lualine_c = {},
             lualine_x = {
-              { "diagnostics", sources = { "nvim_diagnostic" } },
+              {
+                "diagnostics",
+                sources = { "nvim_diagnostic" },
+                on_click = function(_, button)
+                  if button == "r" then
+                    jump_diagnostic(-1)
+                    return
+                  end
+
+                  jump_diagnostic(1)
+                end,
+              },
               "selectioncount",
               "fileencoding",
             },
@@ -297,7 +320,7 @@ require("lazy").setup({
         "hrsh7th/cmp-nvim-lsp",
       },
       config = function()
-        local servers = { "lua_ls", "pyright", "ts_ls", "clangd", "rust_analyzer" }
+        local servers = { "lua_ls", "pyright", "ts_ls", "clangd", "rust_analyzer", "texlab" }
         local cmp_cap = require("cmp_nvim_lsp").default_capabilities()
         local format_group = vim.api.nvim_create_augroup("HelixFormat", { clear = true })
 
@@ -363,6 +386,7 @@ require("lazy").setup({
         configure("ts_ls")
         configure("clangd")
         configure("rust_analyzer")
+        configure("texlab")
       end,
     },
     {
