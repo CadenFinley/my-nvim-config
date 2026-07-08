@@ -345,6 +345,19 @@ require("lazy").setup({
           end
 
           lsp_map("gd", vim.lsp.buf.definition, "Go to definition")
+          lsp_map("<leader>ca", vim.lsp.buf.code_action, "Code actions")
+          lsp_map("<leader>cf", function()
+            vim.lsp.buf.code_action({
+              apply = true,
+              context = { only = { "quickfix" } },
+            })
+          end, "Apply quick fix")
+          lsp_map("<leader>cF", function()
+            vim.lsp.buf.code_action({
+              apply = true,
+              context = { only = { "source.fixAll" } },
+            })
+          end, "Apply fix all")
 
           vim.api.nvim_clear_autocmds({ group = format_group, buffer = bufnr })
           vim.api.nvim_create_autocmd("BufWritePre", {
