@@ -323,6 +323,64 @@ require("lazy").setup({
         local servers = { "lua_ls", "pyright", "ts_ls", "clangd", "rust_analyzer", "texlab" }
         local cmp_cap = require("cmp_nvim_lsp").default_capabilities()
         local format_group = vim.api.nvim_create_augroup("HelixFormat", { clear = true })
+        local clang_format_filetypes = {
+          c = true,
+          cpp = true,
+          objc = true,
+          objcpp = true,
+          cuda = true,
+          proto = true,
+        }
+
+        local function format_with_clang_format(bufnr)
+          if vim.fn.executable("clang-format") ~= 1 then
+            return false, "missing"
+          end
+
+          local filename = vim.api.nvim_buf_get_name(bufnr)
+          local buffer_text = table.concat(vim.api.nvim_buf_get_lines(bufnr, 0, -1, false), "\n")
+          local command = { "clang-format", "--style=file" }
+
+          if filename ~= "" then
+            table.insert(command, "--assume-filename")
+            table.insert(command, filename)
+          end
+
+          local result = vim.system(command, { stdin = buffer_text, text = true }):wait()
+          if result.code ~= 0 then
+            local stderr = (result.stderr or ""):gsub("%s+$", "")
+            local message = "clang-format failed"
+            if stderr ~= "" then
+              message = message .. ": " .. stderr
+            end
+            vim.notify(message, vim.log.levels.ERROR)
+            return false, "failed"
+          end
+
+          local output = result.stdout or ""
+          if output:sub(-1) == "\n" then
+            output = output:sub(1, -2)
+          end
+
+          local formatted_lines = output == "" and {} or vim.split(output, "\n", { plain = true })
+          vim.api.nvim_buf_set_lines(bufnr, 0, -1, false, formatted_lines)
+          return true
+        end
+
+        local function format_buffer(bufnr)
+          if clang_format_filetypes[vim.bo[bufnr].filetype] then
+            local ok, reason = format_with_clang_format(bufnr)
+            if ok then
+              return
+            end
+
+            if reason == "missing" then
+              vim.notify_once("clang-format is not available in PATH; falling back to LSP formatting", vim.log.levels.WARN)
+            end
+          end
+
+          vim.lsp.buf.format({ async = false, bufnr = bufnr })
+        end
 
         local function enable_inlay_hints(bufnr)
           if vim.lsp.inlay_hint and vim.lsp.inlay_hint.enable then
@@ -364,7 +422,7 @@ require("lazy").setup({
             group = format_group,
             buffer = bufnr,
             callback = function()
-              vim.lsp.buf.format({ async = false })
+              format_buffer(bufnr)
             end,
           })
         end
