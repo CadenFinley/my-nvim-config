@@ -55,6 +55,7 @@ end
 
 map({ "n", "i" }, "<C-s>", "<Cmd>w<CR>", { desc = "Save file" })
 map("n", "<C-q>", "<Cmd>q<CR>", { desc = "Quit window" })
+map("n", "<Esc>", "<Cmd>nohlsearch<CR>", { desc = "Clear search highlight" })
 map("n", "<leader><leader>", open_last_buffer_or_file, { desc = "Last buffer or recent file" })
 map("n", "<leader>l", "<Cmd>Lazy<CR>", { desc = "Open Lazy" })
 map("n", "<leader>e", "<Cmd>NvimTreeToggle<CR>", { desc = "Toggle file explorer" })
