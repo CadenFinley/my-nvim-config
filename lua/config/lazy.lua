@@ -299,7 +299,31 @@ require("lazy").setup({
       "nvim-treesitter/nvim-treesitter-context",
       dependencies = { "nvim-treesitter/nvim-treesitter" },
       opts = {
-        enable = false,
+        enable = true,
+        max_lines = 1,
+        multiline_threshold = 1,
+        trim_scope = "outer",
+        mode = "cursor",
+        on_attach = function(bufnr)
+          local function_context_languages = {
+            bash = true,
+            c = true,
+            cpp = true,
+            cuda = true,
+            go = true,
+            javascript = true,
+            lua = true,
+            python = true,
+            rust = true,
+            tsx = true,
+            typescript = true,
+            vim = true,
+          }
+
+          local filetype = vim.bo[bufnr].filetype
+          local language = vim.treesitter.language.get_lang(filetype) or filetype
+          return function_context_languages[language] == true
+        end,
       },
       config = function(_, opts)
         local context = require("treesitter-context")
