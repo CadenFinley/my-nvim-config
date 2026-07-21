@@ -128,6 +128,7 @@ require("lazy").setup({
         local telescope = require("telescope")
         telescope.setup({
           defaults = {
+            file_ignore_patterns = { "%.git/" },
             prompt_prefix = "❯ ",
             selection_caret = "▶ ",
             sorting_strategy = "ascending",
