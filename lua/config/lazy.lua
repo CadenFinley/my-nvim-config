@@ -516,6 +516,19 @@ require("lazy").setup({
               panel = { enabled = false },
             })
 
+            vim.keymap.set("n", "<leader>ai", function()
+              local client = require("copilot.client")
+              local command = require("copilot.command")
+
+              if client.is_disabled() then
+                command.enable()
+                vim.notify("AI completions enabled")
+              else
+                command.disable()
+                vim.notify("AI completions disabled")
+              end
+            end, { desc = "Toggle AI completions" })
+
             vim.defer_fn(function()
               local ok, auth = pcall(require, "copilot.auth")
               if ok then
