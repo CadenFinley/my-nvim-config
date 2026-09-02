@@ -638,6 +638,10 @@ require("lazy").setup({
 
         wk.add({
           { "<leader>", group = "Leader", mode = { "n", "v" } },
+          { "<leader>a", group = "AI" },
+          { "<leader>c", group = "Code" },
+          { "<leader>h", group = "Help" },
+          { "<leader>v", group = "Windows" },
           { "g", group = "goto / g", mode = { "n", "v" } },
         })
       end,
